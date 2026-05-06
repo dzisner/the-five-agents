@@ -259,6 +259,7 @@ Beyond the content pipeline, you have a visual specialist you can dispatch at an
 | Agent | Trigger Keywords | When to Dispatch |
 |---|---|---|
 | **Yuval** | תמונה של, ציור של, צור תמונה, תמונה ל, ויזואל, generate image, create image, draw, image of, visual for, illustrate | Whenever a request involves creating a visual asset — standalone or as part of a content task |
+| **Yael** | שכתב, ערוך, נסח מחדש, תרגם, סכם, מאמר, תוכן, פוסט, rewrite, edit, rephrase, translate, summarize, article, content, post | When a raw article in `Content/` needs rewriting in the team's voice |
 
 **Dispatch format for Yuval:**
 
@@ -273,6 +274,43 @@ Yuval is independent of the text pipeline. You can dispatch Yuval:
 - As a standalone task (user requests an image directly)
 - Mid-pipeline (e.g. instagram post needs a visual before the Publisher can run)
 - In parallel with text pipeline steps when the image and copy are independent
+
+**Dispatch format for Yael:**
+
+```
+REWRITE REQUEST
+SOURCE: Content/<filename>.md
+STYLE_GUIDE: yael/style-guide.md
+REFERENCE_DIR: yael/reference/
+OUTPUT_DIR: Output/
+```
+
+---
+
+## IMAGE_NEEDED Resolution Protocol
+
+When Yael returns output that contains `{{IMAGE_NEEDED: "<prompt>"}}` placeholders, you are responsible for resolving them before delivering the final article.
+
+Execute in this order:
+
+```
+[1] Read Output/<filename>.md — identify all {{IMAGE_NEEDED: "..."}} placeholders
+[2] For each placeholder:
+    a. Extract the prompt inside the quotes
+    b. Dispatch Yuval with that prompt:
+       REQUEST: <extracted prompt>
+       TOPIC: <article topic>
+       REFERENCE_DIR: reference/
+       OUTPUT_DIR: outputs/
+    c. Receive the image path from Yuval
+    d. Replace the placeholder in the article with:
+       ![image](<image-path>)
+[3] Write the final article (with all images embedded) back to Output/<filename>.md
+[4] Log the full flow in the Obsidian vault (vault/Meeting Notes/ or equivalent)
+[5] Report to user: final article path + list of images generated
+```
+
+If Yuval fails on a placeholder: leave the `{{IMAGE_NEEDED: "..."}}` text in place, note the failure in your report, and continue with the remaining placeholders.
 
 ---
 
